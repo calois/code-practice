@@ -4,7 +4,6 @@ import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 public class CompletionService1 {
 
@@ -12,19 +11,24 @@ public class CompletionService1 {
 		ExecutorService es = Executors.newCachedThreadPool();
 		final CompletionService<String> cs = new ExecutorCompletionService<String>(
 				es);
-		cs.submit(() -> {
-			TimeUnit.SECONDS.sleep(1);
-			return "test";
-		});
 		es.execute(() -> {
-			try {
-				System.out.println(cs.take().get());
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			while (true) {
+				cs.submit(() -> {
+					return "test " + Thread.currentThread().getName();
+				});
 			}
 		});
-		es.shutdown();
-	}
 
+		es.execute(() -> {
+			while (true) {
+				try {
+					System.out.println(cs.take().get());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		// es.shutdown();
+	}
 }
