@@ -14,7 +14,14 @@ public class Phaser1 implements Runnable {
 	}
 
 	public static void main(String[] args) {
-		final Phaser phaser = new Phaser();
+		final Phaser phaser = new Phaser() {
+			@Override
+			protected boolean onAdvance(int phase, int registeredParties) {
+				System.out.println(phase + " " + registeredParties);
+				snap();
+				return super.onAdvance(phase, registeredParties);
+			}
+		};
 		IntStream.range(0, 5).forEach(it -> {
 			Thread t = new Thread(new Phaser1(phaser));
 			t.start();
@@ -23,22 +30,22 @@ public class Phaser1 implements Runnable {
 
 	@Override
 	public void run() {
-		phaser.register();
 		System.out.println(Thread.currentThread().getName() + " register");
+		phaser.register();
 		snap();
-		phaser.arriveAndAwaitAdvance();
 		System.out.println(Thread.currentThread().getName() + " phase1");
-		snap();
 		phaser.arriveAndAwaitAdvance();
-		System.out.println(Thread.currentThread().getName() + " phase2");
 		snap();
-		phaser.arriveAndDeregister();
+		System.out.println(Thread.currentThread().getName() + " phase2");
+		phaser.arriveAndAwaitAdvance();
+		snap();
 		System.out.println(Thread.currentThread().getName() + " deregister");
+		phaser.arriveAndDeregister();
 	}
 
 	private static final Random R = new Random();
 
-	private void snap() {
+	private static void snap() {
 
 		try {
 			TimeUnit.SECONDS.sleep(R.nextInt(5));
