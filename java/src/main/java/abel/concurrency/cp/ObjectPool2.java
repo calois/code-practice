@@ -12,22 +12,21 @@ public abstract class ObjectPool2<T> implements ObjectPool<T> {
 
 	private BlockingQueue<T> dataQueue = new LinkedBlockingQueue<>();
 
-	private int maxActive;
-
-	private int maxIdle;
-
 	private Lock lock = new ReentrantLock();
 	private Condition condition = lock.newCondition();
 
+	@Override
+	public void print() {
+		System.out.println(dataQueue.size());
+	}
+
 	public ObjectPool2(int initSize, int maxActive, int maxIdle) {
-		this.maxActive = maxActive;
-		this.maxIdle = maxIdle;
 		dataQueue.addAll(IntStream.range(0, initSize).parallel()
 				.mapToObj(it -> {
 					return createObject();
 				}).collect(Collectors.toList()));
 		Thread thread = new Thread(() -> {
-			for (int i = 0; i < maxActive; i++) {
+			for (int i = 0; i < maxActive - initSize; i++) {
 				while (dataQueue.size() >= maxIdle) {
 					lock.lock();
 					try {
@@ -42,16 +41,22 @@ public abstract class ObjectPool2<T> implements ObjectPool<T> {
 		});
 		thread.start();
 	}
-	
 
 	@Override
 	public T checkout() {
-		// dataQueue.
-		try {
-			return dataQueue.take();
-		} catch (InterruptedException e) {
-			return null;
+		T t = dataQueue.poll();
+		if (null == t) {
+			lock.lock();
+			condition.signalAll();
+			lock.unlock();
+			try {
+				return dataQueue.take();
+			} catch (InterruptedException e) {
+				return null;
+			}
 		}
+		return t;
+
 	}
 
 	@Override

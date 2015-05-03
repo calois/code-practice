@@ -15,6 +15,11 @@ public abstract class ObjectPool1<T> implements ObjectPool<T> {
 	}
 
 	@Override
+	public void print() {
+		System.out.println(objectList.size());
+	}
+
+	@Override
 	public T checkout() {
 		try {
 			semaphore.acquire();

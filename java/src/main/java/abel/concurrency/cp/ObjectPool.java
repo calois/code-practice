@@ -7,4 +7,5 @@ public interface ObjectPool<T> {
 
 	void checkin(T t);
 
+	void print();
 }
