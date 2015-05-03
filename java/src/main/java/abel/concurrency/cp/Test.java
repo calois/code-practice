@@ -10,7 +10,19 @@ public class Test {
 	public static void main(String[] args) throws InterruptedException {
 		long a = System.currentTimeMillis();
 
-		ObjectPool<Test> pool = new ObjectPool2<Test>(2, 10, 3) {
+/*		ObjectPool<Test> pool = new ObjectPool2<Test>(2, 10, 3) {
+
+			@Override
+			public Test createObject() {
+				try {
+					TimeUnit.SECONDS.sleep(1);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				return new Test();
+			}
+		};*/
+				ObjectPool<Test> pool = new ObjectPool3<Test>( 10, 3) {
 
 			@Override
 			public Test createObject() {
@@ -41,7 +53,7 @@ public class Test {
 				Test t = pool.checkout();
 				System.out.println(Thread.currentThread().getName());
 				try {
-					TimeUnit.SECONDS.sleep(4);
+					TimeUnit.SECONDS.sleep(1);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
